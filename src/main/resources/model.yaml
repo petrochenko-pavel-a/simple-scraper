@@ -1,0 +1,56 @@
+id: mulesoft_teams_store3
+apis:  
+   git: 
+     auth:
+       basic:
+         user: USER
+         password: PASSWORD
+     base: https://api.github.com/
+     extras:
+       state: "all"
+     entities:
+       Organization: 
+         collections:
+           repos: Repository
+       Issue:
+         links:
+           owner: User
+           user: User
+           assignee: User
+           assignees: User
+           pull_request: PullRequest
+           labels: Label
+           milestone: Milestone
+           closed_by: User
+       Label:
+       Milestone:
+         links:
+           creator: User
+       PullRequest:
+         links: 
+           requested_reviewers: User
+           assignees: User
+           assignee: User
+           milestone: Milestone
+           repo: Repository
+           user: User
+           merged_by: User
+       User:
+         links:
+           owner: 
+       Repository:
+         links: 
+            owner: User
+            parent: Repository
+            organization: Organization
+            source: Repository
+         collections:
+           issues: Issue
+           labels: Label
+           milestones: Milestone
+     toplevelCollections: 
+          orgs: Organization      
+entryPoints:
+   - git.orgs: mulesoft-labs
+   - git.orgs: raml-org
+   - git.orgs: mulesoft
