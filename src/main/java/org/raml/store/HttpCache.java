@@ -22,7 +22,7 @@ public class HttpCache {
 
 	private static final String UTF_8 = "UTF-8";
 	protected File root;
-	protected boolean cacheOn=true;
+	protected boolean cacheOn = true;
 
 	public HttpCache() {
 		try {
@@ -32,7 +32,6 @@ public class HttpCache {
 		}
 	}
 
-	
 	public HttpCache(File root) {
 		super();
 		this.root = root;
@@ -46,7 +45,7 @@ public class HttpCache {
 	public JSONObject getObject(String url) {
 		Path resolve = root.toPath().resolve(escape(url));
 		File file = resolve.toFile();
-		if (file.exists()&&cacheOn) {
+		if (file.exists() && cacheOn) {
 			try {
 				return new JSONObject(new String(Files.readAllBytes(resolve), UTF_8));
 			} catch (JSONException | IOException e) {
@@ -56,8 +55,27 @@ public class HttpCache {
 		try {
 			HttpResponse<JsonNode> createRequest = createRequest(url);
 			JSONObject object = createRequest.getBody().getObject();
-			if (createRequest.getStatus()<200||createRequest.getStatus()>=300){
-				throw new IllegalStateException("Status:"+createRequest.getStatus()+" "+createRequest.getStatusText());
+			if (createRequest.getStatus() < 200 || createRequest.getStatus() >= 300) {
+				if (createRequest.getStatus() != 404) {
+					List<String> remainingLimit = createRequest.getHeaders().get("X-RateLimit-Remaining");
+					if (remainingLimit!=null&&remainingLimit.contains("0")) {
+						long currentTimeMillis = System.currentTimeMillis() / 1000;
+						List<String> list = createRequest.getHeaders().get("X-RateLimit-Reset");
+						if (list != null && !list.isEmpty()) {
+							String reset = list.get(0);
+							long delta = Long.parseLong(reset) - currentTimeMillis;
+							try {
+								System.out.println("Rate limit reached, sleeping for:" + delta + " seconds");
+								Thread.sleep(delta * 1000);
+							} catch (InterruptedException e) {
+
+							}
+							return getObject(url);
+						}
+					}
+					throw new IllegalStateException(
+							"Status:" + createRequest.getStatus() + " " + createRequest.getStatusText());
+				}
 			}
 			try {
 				Files.write(resolve, object.toString().getBytes(UTF_8));
@@ -69,11 +87,11 @@ public class HttpCache {
 			throw new IllegalStateException(e);
 		}
 	}
-	
+
 	public JSONArray readArray(String url) {
 		Path resolve = root.toPath().resolve(escape(url));
 		File file = resolve.toFile();
-		if (file.exists()&&cacheOn) {
+		if (file.exists() && cacheOn) {
 			try {
 				return new JSONArray(new String(Files.readAllBytes(resolve), UTF_8));
 			} catch (JSONException | IOException e) {
@@ -87,8 +105,8 @@ public class HttpCache {
 				HttpResponse<JsonNode> asJson;
 
 				asJson = createRequest(string);
-				if (asJson.getStatus()>250){
-					if (asJson.getStatus()==404){
+				if (asJson.getStatus() > 250) {
+					if (asJson.getStatus() == 404) {
 						return new JSONArray();
 					}
 					throw new IllegalStateException();
@@ -122,11 +140,12 @@ public class HttpCache {
 		}
 		return arr;
 	}
-	static class AuthEntry{
+
+	static class AuthEntry {
 		final String startsWith;
 		final String password;
 		final String user;
-		
+
 		public AuthEntry(String startsWith, String password, String user) {
 			super();
 			this.startsWith = startsWith;
@@ -134,28 +153,31 @@ public class HttpCache {
 			this.user = user;
 		}
 	}
-	final ArrayList<AuthEntry>entries=new ArrayList<>();
 
-	final ArrayList<Map<String,String>>extraArgs=new ArrayList<>();
+	final ArrayList<AuthEntry> entries = new ArrayList<>();
 
-	public  void addBasicAuth(String url,String password,String user){
+	final ArrayList<Map<String, String>> extraArgs = new ArrayList<>();
+
+	public void addBasicAuth(String url, String password, String user) {
 		entries.add(new AuthEntry(url, password, user));
 	}
-	public  void addExtra(String url,Map<String,String>args){
+
+	public void addExtra(String url, Map<String, String> args) {
 		extraArgs.add(args);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private HttpResponse<JsonNode> createRequest(String string) throws UnirestException {
 		System.out.println(string);
+
 		GetRequest basicAuth = Unirest.get(string);
-		for (AuthEntry e:entries){
-			if (string.startsWith(e.startsWith)){
-				basicAuth=basicAuth.basicAuth(e.user, e.password);
+		for (AuthEntry e : entries) {
+			if (string.startsWith(e.startsWith)) {
+				basicAuth = basicAuth.basicAuth(e.user, e.password);
 			}
 		}
-		for (Map<String,String>args:extraArgs){
-			basicAuth.queryString((Map)args);
+		for (Map<String, String> args : extraArgs) {
+			basicAuth.queryString((Map) args);
 		}
 		return basicAuth.asJson();
 	}

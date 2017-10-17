@@ -7,8 +7,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 
-public class Store implements Serializable{
-	
+public class Store implements Serializable{	
 	/**
 	 * 
 	 */
@@ -46,6 +45,4 @@ public class Store implements Serializable{
 	public Collection<StoreEntity>entities(){
 		return this.entities.values();
 	}
-	
-	
 }

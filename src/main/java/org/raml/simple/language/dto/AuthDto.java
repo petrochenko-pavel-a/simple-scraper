@@ -1,10 +1,21 @@
 package org.raml.simple.language.dto;
 
-public class AuthDto {
+import java.io.Serializable;
 
-	public static class Basic{
-		String user;
-		String password;
+public class AuthDto implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public static class Basic implements Serializable{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		transient String user;
+		transient String password;
 		public String getUser() {
 			return user;
 		}

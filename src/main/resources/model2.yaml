@@ -1,4 +1,4 @@
-id: mulesoftlabs_ramlorg_mulesoft
+id: mulesoftlabs_ramlorg
 apis:  
    git: 
      auth:
@@ -53,4 +53,4 @@ apis:
 entryPoints:
    - git.orgs: mulesoft-labs
    - git.orgs: raml-org
-   - git.orgs: mulesoft
+   # - git.orgs: mulesoft

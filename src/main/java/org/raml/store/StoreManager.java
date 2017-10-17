@@ -16,6 +16,16 @@ public class StoreManager {
 
 	static File root;
 	
+	public static File getRoot() {
+		return root;
+	}
+
+
+	public static void setRoot(File root) {
+		StoreManager.root = root;
+	}
+
+
 	static boolean cacheOn=true;
 	
 	static {
@@ -24,8 +34,7 @@ public class StoreManager {
 		} catch (IOException e) {
 			throw new LinkageError();
 		}
-	}
-	
+	}	
 	
 	
 	public static Store getStore(StoreDescription ds){
