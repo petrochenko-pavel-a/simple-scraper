@@ -13,6 +13,7 @@ public class StoreLoader {
 		StoreConfiguration loadAs = yaml.loadAs(StoreLoader.class.getResourceAsStream("/model.yaml"), StoreConfiguration.class);
 		StoreDescription ds=new Loader().getStore(loadAs);
 		Store store = StoreManager.getStore(ds);
-		System.out.println(store);
+		
+		System.out.println(store.entities().size());
 	}
 }

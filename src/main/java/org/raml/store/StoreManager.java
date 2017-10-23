@@ -5,12 +5,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
 import org.raml.collectionlanguage.StoreDescription;
 import org.raml.simple.language.dto.AuthDto;
+import org.raml.simple.language.dto.Loader;
+import org.raml.simple.language.dto.StoreConfiguration;
+import org.yaml.snakeyaml.Yaml;
 
 public class StoreManager {
 
@@ -35,7 +39,22 @@ public class StoreManager {
 			throw new LinkageError();
 		}
 	}	
+	public static Store getStore(URL desc){
+		Yaml yaml=new Yaml();
+		StoreConfiguration loadAs;
+		try {
+			loadAs = yaml.loadAs(desc.openStream(), StoreConfiguration.class);
+			StoreDescription ds=new Loader().getStore(loadAs);
+			Store store = StoreManager.getStore(ds);
+			return store;
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}		
+	}
 	
+	public static Store getDebugStore(){
+		return getStore(StoreManager.class.getResource("/model.yaml"));
+	}
 	
 	public static Store getStore(StoreDescription ds){
 		HttpCache c=new HttpCache();
