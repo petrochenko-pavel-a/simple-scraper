@@ -4,6 +4,7 @@ import java.util.List;
 
 public interface IStore {
 
+	
 	List<IEntity> allInstances(IResolvableEntityType entity);
 	
 }

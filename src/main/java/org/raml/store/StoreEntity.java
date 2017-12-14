@@ -45,7 +45,11 @@ public class StoreEntity implements Serializable{
 		});
 	}
 	public Object property(String name){
-		return this.properties.get(name);
+		Object object = this.properties.get(name);
+		if (object==null){
+			object=this.children.get(name);
+		}
+		return object;
 	}
 	
 	
@@ -67,7 +71,11 @@ public class StoreEntity implements Serializable{
 					entity.resolve(cache,true, false);
 					object = entity;
 				} else {
-					System.out.println(url + ":" + k + ":" + this.type.name());
+					HashMap<String, Object> vls = new LinkedHashMap<>();
+					jo.keys().forEachRemaining(k1 -> {
+						vls.put(k1, proceed(cache,jo, k1));
+					});
+					object = vls;
 				}
 			} else {
 				HashMap<String, Object> vls = new LinkedHashMap<>();
@@ -140,5 +148,10 @@ public class StoreEntity implements Serializable{
 		}
 		
 		return "<>("+this.type.name()+")";
+	}
+
+	public String iri() {
+		String url = (String) this.properties.get("url");
+		return url;
 	}
 }

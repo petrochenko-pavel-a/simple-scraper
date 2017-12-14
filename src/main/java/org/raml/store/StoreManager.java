@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.net.URL;
 import java.nio.file.Files;
@@ -53,7 +54,12 @@ public class StoreManager {
 	}
 	
 	public static Store getDebugStore(){
-		return getStore(StoreManager.class.getResource("/model.yaml"));
+		
+		try {
+			return loadFromStream(StoreManager.class.getResourceAsStream("/debug.store"));
+		} catch (ClassNotFoundException | IOException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 	
 	public static Store getStore(StoreDescription ds){
@@ -72,15 +78,7 @@ public class StoreManager {
 		Path resolve = root.toPath().resolve(url+".store");
 		File file = resolve.toFile();
 		if (file.exists()&&cacheOn) {
-			try {
-				try(ObjectInputStream objectInputStream= new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)))){
-				return (Store) objectInputStream.readObject();
-				}
-			} catch ( IOException e) {
-				throw new IllegalStateException(e);
-			} catch (ClassNotFoundException e) {
-				throw new IllegalStateException(e);
-			}
+			return loadFromFile(file);
 		}
 		Store st=new Store();
 		ds.getEntryPoints().forEach(e->{
@@ -93,5 +91,24 @@ public class StoreManager {
 			e.printStackTrace();
 		}
 		return st;		
+	}
+
+
+	private static Store loadFromFile(File file) {
+		try {
+			InputStream stream = new FileInputStream(file);
+			return loadFromStream(stream);
+		} catch ( IOException e) {
+			throw new IllegalStateException(e);
+		} catch (ClassNotFoundException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+
+	private static Store loadFromStream(InputStream stream) throws IOException, ClassNotFoundException {
+		try(ObjectInputStream objectInputStream= new ObjectInputStream(new BufferedInputStream(stream))){
+		return (Store) objectInputStream.readObject();
+		}
 	}
 }
